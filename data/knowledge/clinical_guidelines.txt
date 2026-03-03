@@ -1,0 +1,63 @@
+CLINICAL GUIDELINES FOR HOSPITAL READMISSION RISK
+
+SOURCE: Synthetic clinical reference document for ClinicalMind RAG system.
+
+READMISSION RISK FACTORS
+========================
+
+HIGH RISK INDICATORS (each factor significantly increases readmission probability):
+- Prior admissions: 3 or more admissions in the past 12 months is a strong predictor
+- No follow-up appointment: Patients discharged without scheduled follow-up are 2x more likely to readmit
+- Lives alone: Lack of social support increases readmission risk by 40%
+- Medication non-compliance history: Associated with 60% higher readmission rates
+- Length of stay > 7 days: Indicates severe illness, higher readmission risk
+- Age > 75: Elderly patients have significantly higher readmission rates
+- Diagnosis: CHF, COPD, Sepsis, and AMI carry highest 30-day readmission rates
+
+MEDIUM RISK INDICATORS:
+- Prior admissions: 1-2 admissions in past 12 months
+- Age 60-75
+- Length of stay 4-7 days
+- Diagnosis: Diabetes, CKD, Pneumonia
+
+LOW RISK INDICATORS:
+- No prior admissions
+- Follow-up appointment scheduled
+- Age under 60
+- Length of stay under 3 days
+- Strong social support documented
+
+DIAGNOSIS-SPECIFIC READMISSION RATES (30-day):
+- Congestive Heart Failure: 24%
+- COPD: 22%
+- Sepsis: 20%
+- Acute Myocardial Infarction: 18%
+- Pneumonia: 17%
+- Hip Fracture: 15%
+- Type 2 Diabetes: 14%
+- Chronic Kidney Disease: 16%
+- Hypertensive Crisis: 12%
+- Lumbar Spinal Stenosis: 8%
+
+INTERVENTION RECOMMENDATIONS:
+- HIGH risk patients: Contact within 24 hours post-discharge, arrange home visit
+- MEDIUM risk patients: Phone call within 72 hours, confirm follow-up appointment
+- LOW risk patients: Standard discharge instructions, confirm follow-up
+
+RISK SCORING FORMULA:
+Points-based system:
+- 3+ prior admissions: +3 points
+- No follow-up: +3 points
+- Lives alone: +2 points
+- Non-compliant: +2 points
+- LOS > 7 days: +2 points
+- Age > 75: +2 points
+- Age 60-75: +1 point
+- High-risk diagnosis: +3 points
+- Medium-risk diagnosis: +1 point
+
+TOTAL SCORE INTERPRETATION:
+- 7+ points: HIGH RISK
+- 3-6 points: MEDIUM RISK
+- 0-2 points: LOW RISK
+

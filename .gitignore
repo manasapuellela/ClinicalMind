@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+*.sqlite
+*.db
+
+# Environments
+env/
+venv/
+.venv/
+
+# IDE / tool metadata
+.cursor/
+.vscode/
+.idea/
+
+# Secrets and local config
+.env
+
+# Data
+data/raw/
+data/processed/
+

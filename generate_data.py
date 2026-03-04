@@ -8,8 +8,7 @@ to make the pipeline realistic.
 import os
 import random
 
-output_dir = "data/raw"
-os.makedirs(output_dir, exist_ok=True)
+OUTPUT_DIR = "data/raw"
 
 # Seed data pools
 diagnoses = [
@@ -101,12 +100,19 @@ Signed: {doctor}
         "has_follow_up": bool(follow_up.strip()),
     }
 
-if __name__ == "__main__":
-    print("Generating 50 synthetic discharge summaries...")
-    for i in range(1, 51):
+def run(count=50):
+    """Generate synthetic discharge summaries into data/raw. Safe to call from app bootstrap."""
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    for i in range(1, count + 1):
         summary_text, _ = generate_summary(i)
-        filepath = os.path.join(output_dir, f"patient_{i:04d}.txt")
+        filepath = os.path.join(OUTPUT_DIR, f"patient_{i:04d}.txt")
         with open(filepath, "w") as f:
             f.write(summary_text)
-    print(f"Done. 50 files written to {output_dir}/")
+    return count
+
+
+if __name__ == "__main__":
+    print("Generating 50 synthetic discharge summaries...")
+    run(50)
+    print(f"Done. 50 files written to {OUTPUT_DIR}/")
 

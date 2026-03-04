@@ -140,6 +140,12 @@ for k, v in defaults.items():
         st.session_state[k] = v
 
 
+# ── E2E bootstrap (Cloud / first run) ──────────────────────────────────────
+if not os.path.exists("data/processed/patients_summary.json"):
+    with st.spinner("First-time setup: generating data, running pipeline, building RAG..."):
+        from pipeline.bootstrap import ensure_data_ready
+        ensure_data_ready()
+
 # ── Load patient data ──────────────────────────────────────────────────────
 @st.cache_data
 def load_patients():

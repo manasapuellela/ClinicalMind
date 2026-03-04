@@ -10,7 +10,7 @@ import json
 import os
 from langchain_core.messages import HumanMessage, AIMessage
 from agent.graph import clinical_graph
-from pipeline.delta_writer import load_patients_json
+from pipeline.patient_loader import load_patients_json
 
 # ── Page config ────────────────────────────────────────────────────────────
 st.set_page_config(

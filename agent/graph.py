@@ -25,7 +25,7 @@ from langgraph.graph import StateGraph, END
 from agent.state import PAState
 from agent.prompts import SYSTEM_PROMPT, RISK_ANALYSIS_PROMPT
 from agent.retriever import retrieve_context
-from pipeline.delta_writer import load_patients_json
+from pipeline.patient_loader import load_patients_json
 
 load_dotenv()
 

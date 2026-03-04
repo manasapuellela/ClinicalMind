@@ -14,7 +14,7 @@ from pipeline.patient_loader import load_patients_json
 
 # ── Page config ────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="ClinicalMind",
+    page_title="ClinicalMind — AI Readmission Risk Pipeline",
     page_icon="🏥",
     layout="wide",
     initial_sidebar_state="expanded",

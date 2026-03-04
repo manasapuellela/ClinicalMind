@@ -152,7 +152,7 @@ def load_patients():
     try:
         return load_patients_json(), None
     except FileNotFoundError:
-        return [], "Run `python run_pipeline.py` first to process patient data."
+        return [], "No patient data found. Run `python run_pipeline.py` locally or refresh so the app can bootstrap."
 
 
 patients, load_error = load_patients()
@@ -232,8 +232,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("""
     <div style='font-size:0.75em; color:#4a5568; line-height:1.6'>
-    Built with PySpark · Delta Lake<br>
-    LangGraph · Claude API · FAISS RAG<br><br>
+    PySpark/Delta (local) · LangGraph · Claude · FAISS RAG<br><br>
     ⚠️ Synthetic data only.<br>Not for clinical use.
     </div>
     """, unsafe_allow_html=True)
@@ -244,7 +243,7 @@ st.markdown("# Patient Risk Intelligence")
 
 if load_error:
     st.error(f"⚠️ {load_error}")
-    st.code("python run_pipeline.py", language="bash")
+    st.code("python run_pipeline.py   # or refresh the page to trigger first-time bootstrap", language="bash")
     st.stop()
 
 # Welcome message

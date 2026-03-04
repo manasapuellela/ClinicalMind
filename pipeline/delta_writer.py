@@ -1,8 +1,8 @@
 """
-DELTA LAKE WRITER
+DELTA LAKE WRITER (Spark pipeline only — not used on Streamlit Cloud).
 Saves the fully processed and quality-checked patient DataFrame
-to Delta Lake format in data/processed/.
-Also saves a JSON summary for the agent to read quickly.
+to Delta Lake format in data/processed/. Also saves a JSON summary.
+The app and agent load JSON via pipeline.patient_loader (Spark-free).
 """
 
 import os

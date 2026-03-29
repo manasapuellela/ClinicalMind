@@ -202,7 +202,8 @@ Always surface data quality warnings for incomplete records.
         cleaned = clean_json(raw)
         try:
             parsed = json.loads(cleaned)
-            response_text = ClinicalAnalysisResponse(**parsed).to_display_text()
+            validated = ClinicalAnalysisResponse(**parsed)
+            response_text = validated.to_display_text()
         except (ValidationError, json.JSONDecodeError):
             logger.warning("Structured output validation failed, using raw response")
             response_text = raw
@@ -263,7 +264,8 @@ Reference specific patient IDs and data points in your answer.
         cleaned = clean_json(raw)
         try:
             parsed = json.loads(cleaned)
-            response_text = ClinicalAnalysisResponse(**parsed).to_display_text()
+            validated = ClinicalAnalysisResponse(**parsed)
+            response_text = validated.to_display_text()
         except (ValidationError, json.JSONDecodeError):
             logger.warning("Structured output validation failed, using raw response")
             response_text = raw

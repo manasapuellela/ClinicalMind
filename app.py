@@ -266,25 +266,38 @@ for role, content in st.session_state.display_messages:
         st.markdown(f'<div class="user-bubble">🧑‍⚕️ {content}</div>',
                     unsafe_allow_html=True)
     else:
-        st.markdown(
-            f'<div class="agent-bubble">{content}</div>',
-            unsafe_allow_html=True
-        )
-        # Also render as markdown for structured responses
-        if content.strip().startswith("```json"):
-            import json as _json
+        import json as _json
+        from agent.schemas import ClinicalAnalysisResponse
+        from pydantic import ValidationError as _VE
+
+        rendered = False
+        raw = content.strip()
+
+        if raw.startswith("```json"):
             try:
-                raw = content.strip()
-                if raw.startswith("```json"):
-                    raw = raw[7:]
-                if raw.endswith("```"):
-                    raw = raw[:-3]
-                parsed = _json.loads(raw.strip())
-                from agent.schemas import ClinicalAnalysisResponse
+                cleaned = raw[7:]
+                if cleaned.endswith("```"):
+                    cleaned = cleaned[:-3]
+                first = cleaned.find("{")
+                last = cleaned.rfind("}")
+                if first != -1 and last != -1:
+                    cleaned = cleaned[first:last+1]
+                parsed = _json.loads(cleaned.strip())
                 validated = ClinicalAnalysisResponse(**parsed)
-                st.markdown(validated.to_display_text())
+                display = validated.to_display_text()
+                st.markdown(
+                    f'<div class="agent-bubble">{display}</div>',
+                    unsafe_allow_html=True
+                )
+                rendered = True
             except Exception:
                 pass
+
+        if not rendered:
+            st.markdown(
+                f'<div class="agent-bubble">{content}</div>',
+                unsafe_allow_html=True
+            )
 
 # ── Input handling ─────────────────────────────────────────────────────────
 prefill = st.session_state.pop("prefill", "")

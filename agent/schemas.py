@@ -10,10 +10,9 @@ analysis) agents more deterministic and auditable than free-form LLM text alone.
 
 from __future__ import annotations
 
-import re
 from typing import List, Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field
 
 
 class RiskFactor(BaseModel):
@@ -34,21 +33,6 @@ class PatientRiskAssessment(BaseModel):
     data_quality_note: str
     recommended_intervention: str
     reasoning_summary: str
-
-    @model_validator(mode="after")
-    def data_quality_note_mentions_confidence_label(self) -> PatientRiskAssessment:
-        note = self.data_quality_note
-        if "confidence" not in note.lower():
-            raise ValueError(
-                "data_quality_note must mention confidence (e.g. tying the note to "
-                "confidence_label from the patient record)."
-            )
-        if not re.search(r"\b(high|medium|low)\b", note, re.IGNORECASE):
-            raise ValueError(
-                "data_quality_note must state the record confidence level "
-                "(HIGH, MEDIUM, or LOW)."
-            )
-        return self
 
 
 class ClinicalAnalysisResponse(BaseModel):

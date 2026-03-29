@@ -13,19 +13,24 @@ FLOW:
   Follow-up:      retrieve → followup → END
 """
 
-import os
 import json
+import logging
+import os
 from typing import Literal
+
 from dotenv import load_dotenv
-
 from langchain_anthropic import ChatAnthropic
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-from langgraph.graph import StateGraph, END
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langgraph.graph import END, StateGraph
+from pydantic import ValidationError
 
-from agent.state import PAState
-from agent.prompts import SYSTEM_PROMPT, RISK_ANALYSIS_PROMPT
+from agent.prompts import SYSTEM_PROMPT
 from agent.retriever import retrieve_context
-from pipeline.patient_loader import load_patients_json
+from agent.schemas import ClinicalAnalysisResponse
+from agent.state import PAState
+from pipeline.patient_loader import load_patients_validated, validate_and_load
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -36,6 +41,72 @@ llm = ChatAnthropic(
     max_tokens=2048,
     temperature=0.1,
 )
+
+STRUCTURED_JSON_INSTRUCTION = """
+STRUCTURED RESPONSE FORMAT (required):
+Respond with valid JSON only — no markdown fences, no preamble, no text before or after the JSON object.
+
+The JSON must have exactly this structure. For each field shown as HIGH|MEDIUM|LOW, use a single string: "HIGH", "MEDIUM", or "LOW". For risk_score use an integer from 0 to 20 (inclusive).
+
+{
+  "query_understood": "...",
+  "assessments": [
+    {
+      "patient_id": "...",
+      "risk_level": "HIGH|MEDIUM|LOW",
+      "risk_score": 0-20,
+      "risk_factors": [{"factor": "...", "severity": "HIGH|MEDIUM|LOW", "detail": "..."}],
+      "data_quality_note": "...",
+      "recommended_intervention": "...",
+      "reasoning_summary": "..."
+    }
+  ],
+  "summary": "...",
+  "data_quality_warnings": ["..."],
+  "confidence": "HIGH|MEDIUM|LOW"
+}
+
+assessments may be an empty array if the clinician's question is not patient-specific.
+"""
+
+
+def _llm_content_to_str(content) -> str:
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = []
+        for block in content:
+            if isinstance(block, str):
+                parts.append(block)
+            elif isinstance(block, dict):
+                txt = block.get("text")
+                if txt is not None:
+                    parts.append(str(txt))
+        if parts:
+            return "".join(parts)
+    return str(content)
+
+
+def clean_json(text: str) -> str:
+    """
+    Normalize model output so json.loads succeeds when fences or preamble/suffix exist.
+    Order: strip → trim ```json / ``` fences → keep outermost {...} only.
+    """
+    s = text.strip()
+    if s.lower().startswith("```json"):
+        s = s[7:].lstrip("\n\r ")
+    elif s.startswith("```"):
+        s = s[3:].lstrip("\n\r ")
+    s = s.rstrip()
+    if s.endswith("```"):
+        s = s[:-3].rstrip()
+    first = s.find("{")
+    if first != -1:
+        s = s[first:]
+    last = s.rfind("}")
+    if last != -1:
+        s = s[: last + 1]
+    return s
 
 
 # ── NODE 1: Load Data ──────────────────────────────────────────────────────
@@ -49,7 +120,15 @@ def load_data_node(state: PAState) -> PAState:
         return state  # Already loaded — skip
 
     try:
-        patients = load_patients_json()
+        patients = validate_and_load()
+        batch = load_patients_validated()
+        print(
+            f"[ClinicalMind] Validation: {batch.total} passed, "
+            f"{len(batch.validation_errors)} errors"
+        )
+        if batch.validation_errors:
+            for err in batch.validation_errors:
+                print(f"  [VALIDATION ERROR] {err}")
         print(f"Loaded {len(patients)} patient records into agent state.")
     except FileNotFoundError as e:
         patients = []
@@ -110,6 +189,7 @@ CLINICIAN QUESTION:
 Answer the clinician's question using the patient data above.
 Apply the risk scoring logic from your system prompt.
 Always surface data quality warnings for incomplete records.
+{STRUCTURED_JSON_INSTRUCTION}
 """
 
     claude_messages = [SystemMessage(content=SYSTEM_PROMPT)] + messages + [
@@ -118,7 +198,14 @@ Always surface data quality warnings for incomplete records.
 
     try:
         response = llm.invoke(claude_messages)
-        response_text = response.content
+        raw = _llm_content_to_str(response.content)
+        cleaned = clean_json(raw)
+        try:
+            parsed = json.loads(cleaned)
+            response_text = ClinicalAnalysisResponse(**parsed).to_display_text()
+        except (ValidationError, json.JSONDecodeError):
+            logger.warning("Structured output validation failed, using raw response")
+            response_text = raw
     except Exception as e:
         response_text = f"⚠️ Error connecting to Claude API: {str(e)}. Please check your API key."
 
@@ -163,6 +250,7 @@ FOLLOW-UP QUESTION:
 
 Answer using the full conversation history above for context.
 Reference specific patient IDs and data points in your answer.
+{STRUCTURED_JSON_INSTRUCTION}
 """
 
     claude_messages = [SystemMessage(content=SYSTEM_PROMPT)] + messages + [
@@ -171,7 +259,14 @@ Reference specific patient IDs and data points in your answer.
 
     try:
         response = llm.invoke(claude_messages)
-        response_text = response.content
+        raw = _llm_content_to_str(response.content)
+        cleaned = clean_json(raw)
+        try:
+            parsed = json.loads(cleaned)
+            response_text = ClinicalAnalysisResponse(**parsed).to_display_text()
+        except (ValidationError, json.JSONDecodeError):
+            logger.warning("Structured output validation failed, using raw response")
+            response_text = raw
     except Exception as e:
         response_text = f"⚠️ Error: {str(e)}"
 

@@ -266,8 +266,25 @@ for role, content in st.session_state.display_messages:
         st.markdown(f'<div class="user-bubble">🧑‍⚕️ {content}</div>',
                     unsafe_allow_html=True)
     else:
-        st.markdown(f'<div class="agent-bubble">{content}</div>',
-                    unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="agent-bubble">{content}</div>',
+            unsafe_allow_html=True
+        )
+        # Also render as markdown for structured responses
+        if content.strip().startswith("```json"):
+            import json as _json
+            try:
+                raw = content.strip()
+                if raw.startswith("```json"):
+                    raw = raw[7:]
+                if raw.endswith("```"):
+                    raw = raw[:-3]
+                parsed = _json.loads(raw.strip())
+                from agent.schemas import ClinicalAnalysisResponse
+                validated = ClinicalAnalysisResponse(**parsed)
+                st.markdown(validated.to_display_text())
+            except Exception:
+                pass
 
 # ── Input handling ─────────────────────────────────────────────────────────
 prefill = st.session_state.pop("prefill", "")

@@ -211,10 +211,10 @@ with st.sidebar:
     quick_questions = [
         "🔍 Why is PAT-0023 flagged as high risk?",
         "❤️ Which CHF patients don't have follow-up appointments?",
-        "⚠️ Which records have data quality issues?",
         "💊 Show non-compliant patients",
-        "🚨 What interventions should we prioritize this week?",
-        "👴 Which patients over 75 are high risk?",
+        "🔬 Tell me more about PAT-0002",
+        "⚠️ Which records have data quality issues?",
+        "📊 Why is PAT-0001 classified as medium risk?",
     ]
     for q in quick_questions:
         if st.button(q, key=f"quick_{q}"):
